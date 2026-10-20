@@ -18,9 +18,13 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=not DEBUG,
 )
-DB_PATH = os.environ.get(
-    "DATABASE_PATH", os.path.join(os.path.dirname(__file__), "streaklight.db")
-)
+configured_database_path = os.environ.get("DATABASE_PATH")
+if configured_database_path:
+    DB_PATH = configured_database_path
+elif os.environ.get("VERCEL") == "1":
+    DB_PATH = "/tmp/streaklight.db"
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), "streaklight.db")
 
 HABIT_COLORS = ["moss", "gold", "slate", "brick", "plum"]
 

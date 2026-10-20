@@ -127,6 +127,13 @@ On Render, create a web service with build command
 `STREAKLIGHT_SECRET` and `DATABASE_PATH` as environment variables, and attach
 persistent storage for the directory containing the database file.
 
+Vercel is also supported through the `api/index.py` serverless entrypoint. Add
+`STREAKLIGHT_SECRET` in the Vercel project settings and deploy from the
+repository root. Vercel's filesystem is temporary, so the SQLite database is
+stored under `/tmp` there and can be reset between deployments or function
+instances. Use Render with a persistent disk, or replace SQLite with a hosted
+database, when durable production data is required.
+
 ## File structure
 
 ```
@@ -136,6 +143,8 @@ streaklight/
 ├── runtime.txt            Python runtime version
 ├── requirements.txt
 ├── .env.example           deployment environment variable names
+├── api/
+│   └── index.py            Vercel serverless entrypoint
 ├── templates/
 │   ├── layout.html
 │   ├── login.html
