@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block title %}Your habits · Streaklight{% endblock %}
+{% block content %}
+
+<div class="dash-head">
+    <div>
+        <h1>Your habits</h1>
+        <p class="dash-sub">{{ habits|length }} in progress · check in once a day to keep them growing</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('add-habit').classList.toggle('open')">
+        Add a habit
+    </button>
+</div>
+
+<div id="add-habit" class="add-habit-panel">
+    <form method="post" action="{{ url_for('add_habit') }}" class="add-habit-form">
+        <input type="text" name="name" placeholder="e.g. Read 20 minutes" autofocus required maxlength="60">
+        <div class="color-picker">
+            {% for c in colors %}
+            <label class="swatch swatch-{{ c }}">
+                <input type="radio" name="color" value="{{ c }}" {% if loop.first %}checked{% endif %}>
+            </label>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Start tracking</button>
+    </form>
+</div>
+
+{% if habits|length == 0 %}
+<div class="empty-state">
+    <p>Nothing here yet.</p>
+    <p class="empty-sub">Add a habit above — a streak starts on the first check-in.</p>
+</div>
+{% else %}
+<div class="habit-grid">
+    {% for h in habits %}
+    <article class="habit-card habit-card-{{ h.color }}">
+        <div class="habit-card-top">
+            <h2>{{ h.name }}</h2>
+            <form method="post" action="{{ url_for('delete_habit', habit_id=h.id) }}" class="delete-form"
+                  onsubmit="return confirm('Delete {{ h.name }}? This removes its whole history.');">
+                <button type="submit" class="icon-btn" aria-label="Delete habit">&times;</button>
+            </form>
+        </div>
+
+        <div class="habit-stats">
+            <div class="stat">
+                <span class="stat-num">{{ h.streak }}</span>
+                <span class="stat-label">day streak</span>
+            </div>
+            <div class="stat stat-muted">
+                <span class="stat-num">{{ h.best }}</span>
+                <span class="stat-label">best</span>
+            </div>
+        </div>
+
+        <div class="heatmap" role="img" aria-label="Check-in history">
+            {% for week in h.heatmap %}
+            <div class="heatmap-col">
+                {% for iso, checked, in_range in week %}
+                <span class="heatmap-cell {% if checked %}is-checked{% endif %} {% if not in_range %}is-future{% endif %}" title="{{ iso }}"></span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{{ url_for('checkin', habit_id=h.id) }}">
+            <button type="submit" class="btn {% if h.checked_today %}btn-done{% else %}btn-outline{% endif %}">
+                {% if h.checked_today %}Checked in today{% else %}Check in{% endif %}
+            </button>
+        </form>
+    </article>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
