@@ -7,8 +7,20 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("STREAKLIGHT_SECRET", "dev-secret-change-me")
-DB_PATH = os.path.join(os.path.dirname(__file__), "streaklight.db")
+DEBUG = os.environ.get("FLASK_DEBUG") == "1"
+secret_key = os.environ.get("STREAKLIGHT_SECRET")
+if secret_key is None:
+    secret_key = "dev-secret-change-me"
+    print("Warning: STREAKLIGHT_SECRET is not set; using the development secret key.")
+app.secret_key = secret_key
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=not DEBUG,
+)
+DB_PATH = os.environ.get(
+    "DATABASE_PATH", os.path.join(os.path.dirname(__file__), "streaklight.db")
+)
 
 HABIT_COLORS = ["moss", "gold", "slate", "brick", "plum"]
 
@@ -62,6 +74,9 @@ def init_db():
     )
     db.commit()
     db.close()
+
+
+init_db()
 
 
 # ---------- Auth helpers ----------
@@ -291,8 +306,4 @@ def checkin(habit_id):
 
 
 if __name__ == "__main__":
-    if not os.path.exists(DB_PATH):
-        init_db()
-    else:
-        init_db()  # idempotent: CREATE TABLE IF NOT EXISTS
-    app.run(debug=True)
+    app.run(debug=DEBUG)

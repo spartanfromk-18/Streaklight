@@ -102,13 +102,40 @@ python3 app.py
 The first run creates `streaklight.db` automatically. Then visit
 `http://127.0.0.1:5000`, register an account, and add a habit.
 
+## Deploying
+
+Run locally with:
+
+```
+pip install -r requirements.txt
+python app.py
+```
+
+For a production process, start Gunicorn with:
+
+```
+gunicorn app:app
+```
+
+Set `STREAKLIGHT_SECRET` to a long random value in the deployment environment.
+Set `DATABASE_PATH` to the SQLite file on persistent storage; it defaults to
+`streaklight.db` beside `app.py`. `FLASK_DEBUG=1` enables debug mode for local
+development only.
+
+On Render, create a web service with build command
+`pip install -r requirements.txt` and start command `gunicorn app:app`. Add
+`STREAKLIGHT_SECRET` and `DATABASE_PATH` as environment variables, and attach
+persistent storage for the directory containing the database file.
+
 ## File structure
 
 ```
 streaklight/
 ├── app.py                 Flask app: routes, auth, streak/heatmap logic
+├── Procfile               Gunicorn start command
+├── runtime.txt            Python runtime version
 ├── requirements.txt
-├── streaklight.db         created on first run (ignored by git)
+├── .env.example           deployment environment variable names
 ├── templates/
 │   ├── layout.html
 │   ├── login.html
